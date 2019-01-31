@@ -5,6 +5,10 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#ifdef __linux__
+#include <sys/random.h>
+#endif
+
 #include "docs.h"
 #include "sha256.h"
 #include "chacha.h"
@@ -720,12 +724,17 @@ static void secure_entropy(void *buf, size_t len);
 static void
 secure_entropy(void *buf, size_t len)
 {
+#ifdef __linux__
+    if (getrandom(buf, len, 0) == -1)
+        fatal("failed to gather entropy");
+#else
     FILE *r = fopen("/dev/urandom", "rb");
     if (!r)
         fatal("failed to open %s", "/dev/urandom");
     if (!fread(buf, len, 1, r))
         fatal("failed to gather entropy");
     fclose(r);
+#endif
 }
 
 #elif defined(_WIN32)
@@ -1146,6 +1155,7 @@ command_keygen(struct optparse *options)
 {
     static const struct optparse_long keygen[] = {
         {"derive",      'd', OPTPARSE_OPTIONAL},
+        {"derivepublic",'p', OPTPARSE_OPTIONAL},
         {"edit"  ,      'e', OPTPARSE_NONE},
         {"force",       'f', OPTPARSE_NONE},
         {"fingerprint", 'i', OPTPARSE_NONE},
@@ -1164,6 +1174,7 @@ command_keygen(struct optparse *options)
     int clobber = 0;
     int derive = 0;
     int edit = 0;
+    int public_only = 0;
     int protect = 1;
     int fingerprint = 0;
     int repeats = 1;
@@ -1173,9 +1184,11 @@ command_keygen(struct optparse *options)
     int option;
     while ((option = optparse_long(options, keygen, 0)) != -1) {
         switch (option) {
+            case 'p':
             case 'd': {
                 char *p;
                 char *arg = options->optarg;
+                if (option == 'p') public_only = 1;
                 derive = 1;
                 if (arg) {
                     long n;
@@ -1278,7 +1291,8 @@ command_keygen(struct optparse *options)
         putchar('\n');
     }
 
-    write_seckey(secfile, secret, protect ? key_derive_iterations : 0);
+    if (!public_only)
+        write_seckey(secfile, secret, protect ? key_derive_iterations : 0);
     write_pubkey(pubfile, public);
 }
 
