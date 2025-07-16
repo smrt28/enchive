@@ -837,7 +837,9 @@ key_derive(const char *passphrase, uint8_t *buf, int iexp, const uint8_t *salt)
         memptr = memory + (offset & mask);
     }
 
-    memcpy(buf, memptr, SHA256_BLOCK_SIZE);
+    sha256_init(ctx);
+    sha256_update(ctx, memory, memlen + SHA256_BLOCK_SIZE);
+    sha256_final(ctx, buf);
     free(memory);
 }
 
