@@ -10,7 +10,7 @@ sources = src/enchive.c src/chacha.c src/curve25519-donna.c src/sha256.c
 objects = $(sources:.c=.o)
 headers = config.h src/docs.h src/chacha.h src/sha256.h src/optparse.h
 
-enchive$(EXE): $(objects)
+enchive2$(EXE): $(objects)
 	$(CC) $(LDFLAGS) -o $@ $(objects) $(LDLIBS)
 src/enchive.o: src/enchive.c config.h src/docs.h
 src/chacha.o: src/chacha.c config.h

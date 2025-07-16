@@ -803,7 +803,7 @@ key_derive(const char *passphrase, uint8_t *buf, int iexp, const uint8_t *salt)
     unsigned long i;
     unsigned long memlen = 1UL << iexp;
     unsigned long mask = memlen - 1;
-    unsigned long iterations = 1UL << (iexp - 5);
+    unsigned long iterations = 1UL << (iexp - 4);
     uint8_t *memory, *memptr, *p;
 
     memory = malloc(memlen + SHA256_BLOCK_SIZE);
@@ -816,6 +816,8 @@ key_derive(const char *passphrase, uint8_t *buf, int iexp, const uint8_t *salt)
     sha256_update(ctx, (uint8_t *)passphrase, strlen(passphrase));
     hmac_final(ctx, salt32, memory);
 
+    printf("filling up %lu bytes of memory...\n", memlen + SHA256_BLOCK_SIZE);
+
     for (p = memory + SHA256_BLOCK_SIZE;
          p < memory + memlen + SHA256_BLOCK_SIZE;
          p += SHA256_BLOCK_SIZE) {
@@ -823,6 +825,8 @@ key_derive(const char *passphrase, uint8_t *buf, int iexp, const uint8_t *salt)
         sha256_update(ctx, p - SHA256_BLOCK_SIZE, SHA256_BLOCK_SIZE);
         sha256_final(ctx, p);
     }
+
+    printf("running %lu iterations...\n", iterations);
 
     memptr = memory + memlen - SHA256_BLOCK_SIZE;
     for (i = 0; i < iterations; i++) {
@@ -837,7 +841,11 @@ key_derive(const char *passphrase, uint8_t *buf, int iexp, const uint8_t *salt)
         memptr = memory + (offset & mask);
     }
 
-    memcpy(buf, memptr, SHA256_BLOCK_SIZE);
+    printf("finalizing...\n");
+
+    sha256_init(ctx);
+    sha256_update(ctx, memory, memlen + SHA256_BLOCK_SIZE);
+    sha256_final(ctx, buf);
     free(memory);
 }
 
@@ -1001,7 +1009,7 @@ symmetric_decrypt(FILE *in, FILE *out, const uint8_t *key, const uint8_t *iv)
 static char *
 default_pubfile(void)
 {
-    return storage_directory("enchive.pub");
+    return storage_directory("enchive2.pub");
 }
 
 /**
@@ -1010,7 +1018,7 @@ default_pubfile(void)
 static char *
 default_secfile(void)
 {
-    return storage_directory("enchive.sec");
+    return storage_directory("enchive2.sec");
 }
 
 /**
@@ -1643,7 +1651,7 @@ print_usage(FILE *f)
 static void
 print_version(void)
 {
-    puts("enchive " STR(ENCHIVE_VERSION));
+    puts("enchive2 " STR(ENCHIVE_VERSION));
 }
 
 int

@@ -4,15 +4,15 @@
 /* Compile-time configuration */
 
 #ifndef ENCHIVE_VERSION
-#  define ENCHIVE_VERSION 3.5
+#  define ENCHIVE_VERSION 10
 #endif
 
 #ifndef ENCHIVE_FORMAT_VERSION
-#  define ENCHIVE_FORMAT_VERSION 3
+#  define ENCHIVE_FORMAT_VERSION 10
 #endif
 
 #ifndef ENCHIVE_FILE_EXTENSION
-#  define ENCHIVE_FILE_EXTENSION .enchive
+#  define ENCHIVE_FILE_EXTENSION .enchive2
 #endif
 
 #ifndef ENCHIVE_KEY_DERIVE_ITERATIONS

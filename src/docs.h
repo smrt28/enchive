@@ -1,5 +1,5 @@
 static const char *docs_usage[] = {
-"usage enchive [-p|--pubkey <file>] [-s|--seckey <file>]",
+"usage enchive2 [-p|--pubkey <file>] [-s|--seckey <file>]",
 #if ENCHIVE_OPTION_AGENT
 "              [-a|--agent[=seconds]] [-A|--no-agent]",
 #endif
