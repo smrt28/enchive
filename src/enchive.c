@@ -1253,11 +1253,12 @@ enum command {
     COMMAND_KEYGEN,
     COMMAND_FINGERPRINT,
     COMMAND_ARCHIVE,
-    COMMAND_EXTRACT
+    COMMAND_EXTRACT,
+    COMMAND_CAT
 };
 
 static const char command_names[][12] = {
-    "keygen", "fingerprint", "archive", "extract"
+    "keygen", "fingerprint", "archive", "extract", "cat"
 };
 
 /**
@@ -1538,7 +1539,7 @@ command_archive(struct optparse *options)
 }
 
 static void
-command_extract(struct optparse *options)
+command_extract(struct optparse *options, int cat)
 {
     static const struct optparse_long extract[] = {
         {"delete", 'd', OPTPARSE_NONE},
@@ -1585,22 +1586,26 @@ command_extract(struct optparse *options)
                   infile, strerror(errno));
     }
 
-    outfile = dupstr(optparse_arg(options));
-    if (!outfile && infile) {
-        /* Generate an output filename. */
-        size_t slen = sizeof(enchive_suffix) - 1;
-        size_t len = strlen(infile);
-        if (len <= slen || strcmp(enchive_suffix, infile + len - slen) != 0)
-            fatal("could not determine output filename from %s", infile);
-        outfile = dupstr(infile);
-        outfile[len - slen] = 0;
-    }
-    if (outfile) {
-        out = fopen(outfile, "wb");
-        if (!out)
-            fatal("could not open output file '%s' -- %s",
-                  infile, strerror(errno));
-        cleanup_register(out, outfile);
+    if (cat == 0) {
+      outfile = dupstr(optparse_arg(options));
+      if (!outfile && infile) {
+          /* Generate an output filename. */
+          size_t slen = sizeof(enchive_suffix) - 1;
+          size_t len = strlen(infile);
+          if (len <= slen || strcmp(enchive_suffix, infile + len - slen) != 0)
+              fatal("could not determine output filename from %s", infile);
+          outfile = dupstr(infile);
+          outfile[len - slen] = 0;
+      }
+      if (outfile) {
+          out = fopen(outfile, "wb");
+          if (!out)
+              fatal("could not open output file '%s' -- %s",
+                    infile, strerror(errno));
+          cleanup_register(out, outfile);
+      }
+    } else {
+      outfile = NULL;
     }
 
     if (!(fread(iv, sizeof(iv), 1, in)))
@@ -1751,7 +1756,10 @@ main(int argc, char **argv)
             command_archive(options);
             break;
         case COMMAND_EXTRACT:
-            command_extract(options);
+            command_extract(options, 0);
+            break;
+        case COMMAND_CAT:
+            command_extract(options, 1);
             break;
     }
 
