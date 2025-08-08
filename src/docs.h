@@ -10,6 +10,7 @@ static const char *docs_usage[] = {
 "  keygen        generate a new master keypair",
 "  archive       archive using the public key",
 "  extract       extract from an archive using the secret key",
+"  cat           extract and write output to stdout",
 "  fingerprint   print the master keypair fingerprint",
 "",
 "  -p, --pubkey <file>        set the public key file",
